@@ -8,9 +8,10 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createClient() {
-  // Prisma 7: url は schema.prisma ではなくコンストラクタの accelerateUrl で渡す
+  // PRISMA_DATABASE_URL = Prisma Accelerate URL (prisma+postgres://...)
+  // DATABASE_URL        = 直接接続用 PostgreSQL URL（マイグレーション用）
   return new PrismaClient({
-    accelerateUrl: process.env.DATABASE_URL,
+    accelerateUrl: process.env.PRISMA_DATABASE_URL,
   }).$extends(withAccelerate());
 }
 
