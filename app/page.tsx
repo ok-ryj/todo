@@ -116,7 +116,7 @@ export default function TodoPage() {
           <p className="text-2xl font-light text-gray-100 tracking-tight">
             デイリーチェック
           </p>
-          <p className="text-xs text-gray-600 mt-1">
+          <p className="text-xs text-gray-400 mt-1">
             {dailyDone} / {dailyChecks.length} 完了 · 毎朝 0 時に自動リセット
           </p>
         </div>
@@ -128,7 +128,7 @@ export default function TodoPage() {
             onChange={(e) => setDailyInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addDaily()}
             placeholder="毎日やることを入力"
-            className="flex-1 bg-transparent border-b border-gray-700 focus:border-teal-600 px-1 py-2 text-sm text-gray-300 placeholder-gray-600 outline-none transition-colors"
+            className="flex-1 bg-transparent border-b border-gray-600 focus:border-teal-600 px-1 py-2 text-sm text-gray-100 placeholder-gray-500 outline-none transition-colors"
           />
           <button
             onClick={addDaily}
@@ -139,7 +139,7 @@ export default function TodoPage() {
         </div>
 
         {dailyChecks.length === 0 ? (
-          <p className="text-xs text-gray-700 py-6 text-center">
+          <p className="text-xs text-gray-500 py-6 text-center">
             毎日確認したい項目を追加してください
           </p>
         ) : (
@@ -159,14 +159,14 @@ export default function TodoPage() {
                 </button>
                 <span
                   className={`flex-1 text-sm transition-colors ${
-                    check.done ? "line-through text-gray-600" : "text-gray-300"
+                    check.done ? "line-through text-gray-500" : "text-gray-100"
                   }`}
                 >
                   {check.text}
                 </span>
                 <button
                   onClick={() => deleteDaily(check.id)}
-                  className="opacity-0 group-hover:opacity-100 text-gray-700 hover:text-red-500 transition-all text-base leading-none"
+                  className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-all text-base leading-none"
                   aria-label={`「${check.text}」を削除`}
                 >
                   ×
@@ -189,7 +189,7 @@ export default function TodoPage() {
           <p className="text-2xl font-light text-gray-100 tracking-tight">
             やることリスト
           </p>
-          <p className="text-xs text-gray-600 mt-1">
+          <p className="text-xs text-gray-400 mt-1">
             残り {todoRemaining} 件 / 全 {todos.length} 件
           </p>
         </div>
@@ -201,7 +201,7 @@ export default function TodoPage() {
             onChange={(e) => setTodoInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addTodo()}
             placeholder="やることを入力してください"
-            className="flex-1 bg-transparent border-b border-gray-700 focus:border-indigo-600 px-1 py-2 text-sm text-gray-300 placeholder-gray-600 outline-none transition-colors"
+            className="flex-1 bg-transparent border-b border-gray-600 focus:border-indigo-600 px-1 py-2 text-sm text-gray-100 placeholder-gray-500 outline-none transition-colors"
           />
           <button
             onClick={addTodo}
@@ -212,7 +212,7 @@ export default function TodoPage() {
         </div>
 
         {todos.length === 0 ? (
-          <p className="text-xs text-gray-700 py-6 text-center">
+          <p className="text-xs text-gray-500 py-6 text-center">
             やることを追加してみましょう
           </p>
         ) : (
@@ -233,14 +233,14 @@ export default function TodoPage() {
                   </button>
                   <span
                     className={`flex-1 text-sm transition-colors ${
-                      todo.done ? "line-through text-gray-600" : "text-gray-300"
+                      todo.done ? "line-through text-gray-500" : "text-gray-100"
                     }`}
                   >
                     {todo.text}
                   </span>
                   <button
                     onClick={() => deleteTodo(todo.id)}
-                    className="opacity-0 group-hover:opacity-100 text-gray-700 hover:text-red-500 transition-all text-base leading-none"
+                    className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-all text-base leading-none"
                     aria-label={`「${todo.text}」を削除`}
                   >
                     ×
@@ -252,7 +252,7 @@ export default function TodoPage() {
             {todos.some((t) => t.done) && (
               <button
                 onClick={() => setTodos((prev) => prev.filter((t) => !t.done))}
-                className="mt-6 w-full text-xs text-gray-700 hover:text-red-500 border border-gray-800 hover:border-red-900 rounded py-2 transition-colors"
+                className="mt-6 w-full text-xs text-gray-400 hover:text-red-400 border border-gray-700 hover:border-red-800 rounded py-2 transition-colors"
               >
                 完了済みをすべて削除
               </button>
