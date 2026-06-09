@@ -14,15 +14,6 @@ type DailyCheck = {
   done: boolean;
 };
 
-type DailyStorage = {
-  date: string;
-  checks: DailyCheck[];
-};
-
-function today(): string {
-  return new Date().toLocaleDateString("sv-SE");
-}
-
 function CheckIcon() {
   return (
     <svg
@@ -46,59 +37,68 @@ export default function TodoPage() {
   const [dailyInput, setDailyInput] = useState("");
 
   useEffect(() => {
-    const saved = localStorage.getItem("todos");
-    if (saved) setTodos(JSON.parse(saved));
+    fetch("/api/todos").then((r) => r.json()).then(setTodos);
+    fetch("/api/daily").then((r) => r.json()).then(setDailyChecks);
   }, []);
-  useEffect(() => {
-    localStorage.setItem("todos", JSON.stringify(todos));
-  }, [todos]);
 
-  useEffect(() => {
-    const raw = localStorage.getItem("dailyChecks");
-    if (raw) {
-      const stored: DailyStorage = JSON.parse(raw);
-      const checks =
-        stored.date === today()
-          ? stored.checks
-          : stored.checks.map((c) => ({ ...c, done: false }));
-      setDailyChecks(checks);
-    }
-  }, []);
-  useEffect(() => {
-    localStorage.setItem(
-      "dailyChecks",
-      JSON.stringify({ date: today(), checks: dailyChecks })
-    );
-  }, [dailyChecks]);
-
-  function addTodo() {
+  async function addTodo() {
     const text = todoInput.trim();
     if (!text) return;
-    setTodos((prev) => [...prev, { id: Date.now(), text, done: false }]);
+    const todo = await fetch("/api/todos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    }).then((r) => r.json());
+    setTodos((prev) => [...prev, todo]);
     setTodoInput("");
   }
-  function toggleTodo(id: number) {
-    setTodos((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
-    );
+
+  async function toggleTodo(id: number, done: boolean) {
+    const todo = await fetch(`/api/todos/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ done: !done }),
+    }).then((r) => r.json());
+    setTodos((prev) => prev.map((t) => (t.id === id ? todo : t)));
   }
-  function deleteTodo(id: number) {
+
+  async function deleteTodo(id: number) {
+    await fetch(`/api/todos/${id}`, { method: "DELETE" });
     setTodos((prev) => prev.filter((t) => t.id !== id));
   }
 
-  function addDaily() {
+  async function addDaily() {
     const text = dailyInput.trim();
     if (!text) return;
-    setDailyChecks((prev) => [...prev, { id: Date.now(), text, done: false }]);
+    const item = await fetch("/api/daily", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    }).then((r) => r.json());
+    setDailyChecks((prev) => [...prev, item]);
     setDailyInput("");
   }
-  function toggleDaily(id: number) {
-    setDailyChecks((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, done: !c.done } : c))
-    );
+
+  async function toggleDaily(id: number, done: boolean) {
+    const item = await fetch(`/api/daily/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ done: !done }),
+    }).then((r) => r.json());
+    setDailyChecks((prev) => prev.map((c) => (c.id === id ? item : c)));
   }
-  function deleteDaily(id: number) {
+
+  async function deleteDaily(id: number) {
+    await fetch(`/api/daily/${id}`, { method: "DELETE" });
     setDailyChecks((prev) => prev.filter((c) => c.id !== id));
+  }
+
+  async function clearDoneTodos() {
+    const doneTodos = todos.filter((t) => t.done);
+    await Promise.all(
+      doneTodos.map((t) => fetch(`/api/todos/${t.id}`, { method: "DELETE" }))
+    );
+    setTodos((prev) => prev.filter((t) => !t.done));
   }
 
   const todoRemaining = todos.filter((t) => !t.done).length;
@@ -147,7 +147,7 @@ export default function TodoPage() {
             {dailyChecks.map((check) => (
               <li key={check.id} className="flex items-center gap-4 py-3 group">
                 <button
-                  onClick={() => toggleDaily(check.id)}
+                  onClick={() => toggleDaily(check.id, check.done)}
                   aria-label={`「${check.text}」を完了にする`}
                   className={`w-5 h-5 flex-shrink-0 rounded-full border flex items-center justify-center transition-all ${
                     check.done
@@ -221,7 +221,7 @@ export default function TodoPage() {
               {todos.map((todo) => (
                 <li key={todo.id} className="flex items-center gap-4 py-3 group">
                   <button
-                    onClick={() => toggleTodo(todo.id)}
+                    onClick={() => toggleTodo(todo.id, todo.done)}
                     aria-label={`「${todo.text}」を完了にする`}
                     className={`w-5 h-5 flex-shrink-0 rounded-full border flex items-center justify-center transition-all ${
                       todo.done
@@ -251,7 +251,7 @@ export default function TodoPage() {
 
             {todos.some((t) => t.done) && (
               <button
-                onClick={() => setTodos((prev) => prev.filter((t) => !t.done))}
+                onClick={clearDoneTodos}
                 className="mt-6 w-full text-xs text-gray-400 hover:text-red-400 border border-gray-700 hover:border-red-800 rounded py-2 transition-colors"
               >
                 完了済みをすべて削除

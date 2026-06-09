@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Todo {
+  id        Int      @id @default(autoincrement())
+  text      String
+  done      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model DailyItem {
+  id            Int      @id @default(autoincrement())
+  text          String
+  completedDate String?
+  createdAt     DateTime @default(now())
+}
