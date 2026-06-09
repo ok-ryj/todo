@@ -35,22 +35,42 @@ export default function TodoPage() {
   const [todoInput, setTodoInput] = useState("");
   const [dailyChecks, setDailyChecks] = useState<DailyCheck[]>([]);
   const [dailyInput, setDailyInput] = useState("");
+  const [apiError, setApiError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/todos").then((r) => r.json()).then(setTodos);
-    fetch("/api/daily").then((r) => r.json()).then(setDailyChecks);
+    fetch("/api/todos")
+      .then((r) => {
+        if (!r.ok) throw new Error(`GET /api/todos → ${r.status}`);
+        return r.json();
+      })
+      .then(setTodos)
+      .catch((e) => setApiError(String(e)));
+
+    fetch("/api/daily")
+      .then((r) => {
+        if (!r.ok) throw new Error(`GET /api/daily → ${r.status}`);
+        return r.json();
+      })
+      .then(setDailyChecks)
+      .catch((e) => setApiError(String(e)));
   }, []);
 
   async function addTodo() {
     const text = todoInput.trim();
     if (!text) return;
-    const todo = await fetch("/api/todos", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    }).then((r) => r.json());
-    setTodos((prev) => [...prev, todo]);
-    setTodoInput("");
+    try {
+      const r = await fetch("/api/todos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (!r.ok) throw new Error(`POST /api/todos → ${r.status}`);
+      const todo = await r.json();
+      setTodos((prev) => [...prev, todo]);
+      setTodoInput("");
+    } catch (e) {
+      setApiError(String(e));
+    }
   }
 
   async function toggleTodo(id: number, done: boolean) {
@@ -106,6 +126,12 @@ export default function TodoPage() {
 
   return (
     <main className="max-w-xl mx-auto px-6 py-14 space-y-16">
+      {apiError && (
+        <div className="bg-red-900/40 border border-red-700 rounded px-4 py-3 text-xs text-red-300 flex justify-between items-start gap-3">
+          <span>⚠ API エラー: {apiError}</span>
+          <button onClick={() => setApiError(null)} className="text-red-400 hover:text-red-200 flex-shrink-0">×</button>
+        </div>
+      )}
 
       {/* ===== デイリーチェック ===== */}
       <section>
