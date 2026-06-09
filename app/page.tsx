@@ -6,6 +6,7 @@ type Todo = {
   id: number;
   text: string;
   done: boolean;
+  dueDate: string | null;
 };
 
 type DailyCheck = {
@@ -30,9 +31,31 @@ function CheckIcon() {
   );
 }
 
+function DueBadge({ dueDate }: { dueDate: string | null }) {
+  if (!dueDate) return null;
+  const today = new Date().toLocaleDateString("sv-SE");
+  const isOverdue = dueDate < today;
+  const isToday = dueDate === today;
+  return (
+    <span
+      className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
+        isOverdue
+          ? "bg-red-900/50 text-red-400"
+          : isToday
+          ? "bg-amber-900/50 text-amber-400"
+          : "bg-gray-800 text-gray-400"
+      }`}
+    >
+      {isOverdue ? "⚠ " : ""}
+      {dueDate}
+    </span>
+  );
+}
+
 export default function TodoPage() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [todoInput, setTodoInput] = useState("");
+  const [todoDue, setTodoDue] = useState("");
   const [dailyChecks, setDailyChecks] = useState<DailyCheck[]>([]);
   const [dailyInput, setDailyInput] = useState("");
   const [apiError, setApiError] = useState<string | null>(null);
@@ -55,12 +78,13 @@ export default function TodoPage() {
       const r = await fetch("/api/todos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, dueDate: todoDue || null }),
       });
       if (!r.ok) throw new Error(`POST /api/todos → ${r.status}`);
       const todo = await r.json();
       setTodos((prev) => [...prev, todo]);
       setTodoInput("");
+      setTodoDue("");
     } catch (e) {
       setApiError(String(e));
     }
@@ -119,6 +143,8 @@ export default function TodoPage() {
 
   return (
     <main className="max-w-xl mx-auto px-6 py-14 space-y-16">
+
+      {/* エラーバナー */}
       {apiError && (
         <div className="bg-red-900/40 border border-red-700 rounded px-4 py-3 text-xs text-red-300 flex justify-between items-start gap-3">
           <span>⚠ API エラー: {apiError}</span>
@@ -147,7 +173,7 @@ export default function TodoPage() {
             onChange={(e) => setDailyInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addDaily()}
             placeholder="毎日やることを入力"
-            className="flex-1 bg-transparent border-b border-gray-600 focus:border-teal-600 px-1 py-2 text-sm text-gray-100 placeholder-gray-500 outline-none transition-colors"
+            className="flex-1 bg-transparent border-b border-gray-600 focus:border-teal-600 px-1 py-2 text-sm text-white placeholder-gray-500 outline-none transition-colors"
           />
           <button
             onClick={addDaily}
@@ -213,21 +239,42 @@ export default function TodoPage() {
           </p>
         </div>
 
-        <div className="flex gap-2 mb-4">
-          <input
-            type="text"
-            value={todoInput}
-            onChange={(e) => setTodoInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addTodo()}
-            placeholder="やることを入力してください"
-            className="flex-1 bg-transparent border-b border-gray-600 focus:border-indigo-600 px-1 py-2 text-sm text-gray-100 placeholder-gray-500 outline-none transition-colors"
-          />
-          <button
-            onClick={addTodo}
-            className="text-xs font-medium text-indigo-400 hover:text-indigo-200 border border-indigo-900 hover:border-indigo-700 rounded px-4 py-2 transition-colors"
-          >
-            追加
-          </button>
+        {/* 入力エリア */}
+        <div className="space-y-2 mb-4">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={todoInput}
+              onChange={(e) => setTodoInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addTodo()}
+              placeholder="やることを入力してください"
+              className="flex-1 bg-transparent border-b border-gray-600 focus:border-indigo-600 px-1 py-2 text-sm text-white placeholder-gray-500 outline-none transition-colors"
+            />
+            <button
+              onClick={addTodo}
+              className="text-xs font-medium text-indigo-400 hover:text-indigo-200 border border-indigo-900 hover:border-indigo-700 rounded px-4 py-2 transition-colors"
+            >
+              追加
+            </button>
+          </div>
+          {/* 期限入力（任意） */}
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-gray-500 flex-shrink-0">期限（任意）</label>
+            <input
+              type="date"
+              value={todoDue}
+              onChange={(e) => setTodoDue(e.target.value)}
+              className="bg-transparent border-b border-gray-700 focus:border-indigo-600 px-1 py-1 text-xs text-gray-300 outline-none transition-colors [color-scheme:dark]"
+            />
+            {todoDue && (
+              <button
+                onClick={() => setTodoDue("")}
+                className="text-xs text-gray-500 hover:text-gray-300"
+              >
+                ×
+              </button>
+            )}
+          </div>
         </div>
 
         {todos.length === 0 ? (
@@ -238,7 +285,7 @@ export default function TodoPage() {
           <>
             <ul className="divide-y divide-gray-800/60">
               {todos.map((todo) => (
-                <li key={todo.id} className="flex items-center gap-4 py-3 group">
+                <li key={todo.id} className="flex items-center gap-3 py-3 group">
                   <button
                     onClick={() => toggleTodo(todo.id, todo.done)}
                     aria-label={`「${todo.text}」を完了にする`}
@@ -257,6 +304,7 @@ export default function TodoPage() {
                   >
                     {todo.text}
                   </span>
+                  {!todo.done && <DueBadge dueDate={todo.dueDate} />}
                   <button
                     onClick={() => deleteTodo(todo.id)}
                     className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-all text-base leading-none"

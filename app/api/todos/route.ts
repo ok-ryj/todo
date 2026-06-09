@@ -15,8 +15,10 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const prisma = getPrisma();
-    const { text } = await request.json();
-    const todo = await prisma.todo.create({ data: { text } });
+    const { text, dueDate } = await request.json();
+    const todo = await prisma.todo.create({
+      data: { text, dueDate: dueDate || null },
+    });
     return NextResponse.json(todo, { status: 201 });
   } catch (e) {
     console.error("[POST /api/todos]", e);
