@@ -8,13 +8,16 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createClient() {
-  return new PrismaClient().$extends(withAccelerate());
+  // Prisma 7: url は schema.prisma ではなくコンストラクタの accelerateUrl で渡す
+  return new PrismaClient({
+    accelerateUrl: process.env.DATABASE_URL,
+  }).$extends(withAccelerate());
 }
 
 /**
  * Prisma クライアントを遅延初期化して返す。
  * モジュール評価時ではなくリクエスト時に初めて生成されるため、
- * ビルド時に prisma+postgres:// URL が原因でクラッシュしない。
+ * ビルド時にクラッシュしない。
  */
 export function getPrisma(): AccelerateClient {
   if (!globalForPrisma.prisma) {
