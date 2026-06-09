@@ -132,7 +132,7 @@ export default function TodoPage() {
           <h2 className="text-xs font-semibold tracking-[0.2em] uppercase text-teal-500 mb-2">
             Daily Check
           </h2>
-          <p className="text-2xl font-light text-gray-100 tracking-tight">
+          <p className="text-2xl font-light text-white tracking-tight">
             デイリーチェック
           </p>
           <p className="text-xs text-gray-400 mt-1">
@@ -178,7 +178,7 @@ export default function TodoPage() {
                 </button>
                 <span
                   className={`flex-1 text-sm transition-colors ${
-                    check.done ? "line-through text-gray-500" : "text-gray-100"
+                    check.done ? "line-through text-gray-500" : "text-white"
                   }`}
                 >
                   {check.text}
@@ -205,7 +205,7 @@ export default function TodoPage() {
           <h2 className="text-xs font-semibold tracking-[0.2em] uppercase text-indigo-500 mb-2">
             Todo
           </h2>
-          <p className="text-2xl font-light text-gray-100 tracking-tight">
+          <p className="text-2xl font-light text-white tracking-tight">
             やることリスト
           </p>
           <p className="text-xs text-gray-400 mt-1">
@@ -252,7 +252,7 @@ export default function TodoPage() {
                   </button>
                   <span
                     className={`flex-1 text-sm transition-colors ${
-                      todo.done ? "line-through text-gray-500" : "text-gray-100"
+                      todo.done ? "line-through text-gray-500" : "text-white"
                     }`}
                   >
                     {todo.text}
