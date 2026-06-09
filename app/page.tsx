@@ -38,21 +38,14 @@ export default function TodoPage() {
   const [apiError, setApiError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/todos")
-      .then((r) => {
-        if (!r.ok) throw new Error(`GET /api/todos → ${r.status}`);
-        return r.json();
-      })
-      .then(setTodos)
-      .catch((e) => setApiError(String(e)));
-
-    fetch("/api/daily")
-      .then((r) => {
-        if (!r.ok) throw new Error(`GET /api/daily → ${r.status}`);
-        return r.json();
-      })
-      .then(setDailyChecks)
-      .catch((e) => setApiError(String(e)));
+    const load = async (url: string) => {
+      const r = await fetch(url);
+      const body = await r.json();
+      if (!r.ok) throw new Error(`${url} → ${r.status}: ${body?.error ?? JSON.stringify(body)}`);
+      return body;
+    };
+    load("/api/todos").then(setTodos).catch((e) => setApiError(String(e)));
+    load("/api/daily").then(setDailyChecks).catch((e) => setApiError(String(e)));
   }, []);
 
   async function addTodo() {

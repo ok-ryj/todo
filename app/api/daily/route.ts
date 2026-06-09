@@ -6,19 +6,29 @@ function todayStr() {
 }
 
 export async function GET() {
-  const prisma = getPrisma();
-  const items = await prisma.dailyItem.findMany({
-    orderBy: { createdAt: "asc" },
-  });
-  const today = todayStr();
-  return NextResponse.json(
-    items.map((item) => ({ ...item, done: item.completedDate === today }))
-  );
+  try {
+    const prisma = getPrisma();
+    const items = await prisma.dailyItem.findMany({
+      orderBy: { createdAt: "asc" },
+    });
+    const today = todayStr();
+    return NextResponse.json(
+      items.map((item) => ({ ...item, done: item.completedDate === today }))
+    );
+  } catch (e) {
+    console.error("[GET /api/daily]", e);
+    return NextResponse.json({ error: String(e) }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
-  const prisma = getPrisma();
-  const { text } = await request.json();
-  const item = await prisma.dailyItem.create({ data: { text } });
-  return NextResponse.json({ ...item, done: false }, { status: 201 });
+  try {
+    const prisma = getPrisma();
+    const { text } = await request.json();
+    const item = await prisma.dailyItem.create({ data: { text } });
+    return NextResponse.json({ ...item, done: false }, { status: 201 });
+  } catch (e) {
+    console.error("[POST /api/daily]", e);
+    return NextResponse.json({ error: String(e) }, { status: 500 });
+  }
 }
