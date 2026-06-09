@@ -1,18 +1,16 @@
 import { PrismaClient } from "@prisma/client";
-import { withAccelerate } from "@prisma/extension-accelerate";
-
-type AccelerateClient = ReturnType<typeof createClient>;
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: AccelerateClient | undefined;
+  prisma: PrismaClient | undefined;
 };
 
 function createClient() {
-  // PRISMA_DATABASE_URL = Prisma Accelerate URL (prisma+postgres://...)
-  // DATABASE_URL        = 直接接続用 PostgreSQL URL（マイグレーション用）
-  return new PrismaClient({
-    accelerateUrl: process.env.PRISMA_DATABASE_URL,
-  }).$extends(withAccelerate());
+  // Prisma 7: 直接 PostgreSQL 接続には driver adapter が必要
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const adapter = new PrismaPg(pool);
+  return new PrismaClient({ adapter });
 }
 
 /**
@@ -20,7 +18,7 @@ function createClient() {
  * モジュール評価時ではなくリクエスト時に初めて生成されるため、
  * ビルド時にクラッシュしない。
  */
-export function getPrisma(): AccelerateClient {
+export function getPrisma(): PrismaClient {
   if (!globalForPrisma.prisma) {
     globalForPrisma.prisma = createClient();
   }
